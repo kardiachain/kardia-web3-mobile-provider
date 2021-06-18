@@ -7,8 +7,8 @@
     "dist": "../android/lib/src/main/res/raw/"
   },
   "scripts": {
-    "build": "rm -rf ./dist && parcel build index.js --no-source-maps -o kardia-web3-mobile-provider-min.js -d ./dist",
-    "watch": "rm -rf ./dist && parcel watch index.js -o kardia-web3-mobile-provider-min.js -d ./dist",
+    "build": "rm -rf ./dist && parcel build index.js --no-source-maps -o kardia-web3-mobile-provider-min.jsstring -d ./dist",
+    "watch": "rm -rf ./dist && parcel watch index.js --no-source-maps -o kardia-web3-mobile-provider-min.jsstring -d ./dist",
     "lint": "eslint . --fix",
     "test": "jest"
   },

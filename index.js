@@ -65,9 +65,6 @@ class KardiaChainWeb3Provider extends EventEmitter {
    * @deprecated Use request({method: "eth_requestAccounts"}) instead.
    */
   enable() {
-    console.log(
-      'enable() is deprecated, please use window.ethereum.request({method: "eth_requestAccounts"}) instead.'
-    );
     return this.request({ method: "eth_requestAccounts", params: [] });
   }
 
@@ -102,9 +99,6 @@ class KardiaChainWeb3Provider extends EventEmitter {
    * @deprecated Use request() method instead.
    */
   sendAsync(payload, callback) {
-    console.log(
-      "sendAsync(data, callback) is deprecated, please use window.ethereum.request(data) instead."
-    );
     // this points to window in methods like web3.eth.getAccounts()
     var that = this;
     if (!(this instanceof KardiaChainWeb3Provider)) {
@@ -127,9 +121,6 @@ class KardiaChainWeb3Provider extends EventEmitter {
    */
   _request(payload, wrapResult = true) {
     this.idMapping.tryIntifyId(payload);
-    if (this.isDebug) {
-      console.log(`==> _request payload ${JSON.stringify(payload)}`);
-    }
     return new Promise((resolve, reject) => {
       if (!payload.id) {
         payload.id = Utils.genId();
@@ -142,7 +133,7 @@ class KardiaChainWeb3Provider extends EventEmitter {
         }
       });
       this.wrapResults.set(payload.id, wrapResult);
-
+      if (payload.method === 'eth_getTransactionReceipt') console.log('here 1')
       switch (payload.method) {
         case "eth_accounts":
           return this.sendResponse(payload.id, this.eth_accounts());
@@ -187,9 +178,6 @@ class KardiaChainWeb3Provider extends EventEmitter {
           return this.rpc
             .call(payload)
             .then((response) => {
-              if (this.isDebug) {
-                console.log(`<== rpc response ${JSON.stringify(response)}`);
-              }
               wrapResult ? resolve(response) : resolve(response.result);
             })
             .catch(reject);
@@ -287,12 +275,7 @@ class KardiaChainWeb3Provider extends EventEmitter {
         name: handler,
         object: data,
       };
-      if (window.kardiachain.postMessage) {
-        window.kardiachain.postMessage(object);
-      } else {
-        // old clients
-        window.webkit.messageHandlers[handler].postMessage(object);
-      }
+      window.ReactNativeWebView.postMessage(JSON.stringify(object));
     } else {
       // don't forget to verify in the app
       this.sendError(id, new ProviderRpcError(4100, "provider is not ready"));
@@ -309,16 +292,17 @@ class KardiaChainWeb3Provider extends EventEmitter {
     let data = { jsonrpc: "2.0", id: originId };
     if (typeof result === "object" && result.jsonrpc && result.result) {
       data.result = result.result;
+    } else if (typeof result === 'string') {
+      try {
+        const parsed = JSON.parse(result)
+        data.result = parsed
+      } catch (error) {
+        data.result = result; 
+      }
     } else {
       data.result = result;
     }
-    if (this.isDebug) {
-      console.log(
-        `<== sendResponse id: ${id}, result: ${JSON.stringify(
-          result
-        )}, data: ${JSON.stringify(data)}`
-      );
-    }
+    console.log('final data', data)
     if (callback) {
       wrapResult ? callback(null, data) : callback(null, result);
       this.callbacks.delete(id);
@@ -342,7 +326,6 @@ class KardiaChainWeb3Provider extends EventEmitter {
    * @private Internal native error -> js
    */
   sendError(id, error) {
-    console.log(`<== ${id} sendError ${error}`);
     let callback = this.callbacks.get(id);
     if (callback) {
       callback(error instanceof Error ? error : new Error(error), null);
@@ -352,7 +335,23 @@ class KardiaChainWeb3Provider extends EventEmitter {
 }
 
 window.kardiachain = new KardiaChainWeb3Provider({
+  address: '{{WALLET_ADDRESS}}',
   chainId: 0,
   rpcUrl: '{{KARDIA_RPC_URL}}',
   isDebug: false
 });
+
+// DEBUG
+if (window.ReactNativeWebView) {
+  console = new Object();
+  console.log = function(log, type = 'log') {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: type,
+      data: log
+    }));
+  };
+  console.debug = (...args) => console.log(args, 'debug');
+  console.info = (...args) => console.log(args, 'info');
+  console.warn = (...args) => console.log(args, 'warn');
+  console.error = (...args) => console.log(args, 'error');
+}
