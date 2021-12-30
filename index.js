@@ -133,7 +133,7 @@ class KardiaChainWeb3Provider extends EventEmitter {
         }
       });
       this.wrapResults.set(payload.id, wrapResult);
-      if (payload.method === 'eth_getTransactionReceipt') console.log('here 1')
+
       switch (payload.method) {
         case "eth_accounts":
           return this.sendResponse(payload.id, this.eth_accounts());
@@ -302,12 +302,10 @@ class KardiaChainWeb3Provider extends EventEmitter {
     } else {
       data.result = result;
     }
-    console.log('final data', data)
     if (callback) {
       wrapResult ? callback(null, data) : callback(null, result);
       this.callbacks.delete(id);
     } else {
-      console.log(`callback id: ${id} not found`);
       // check if it's iframe callback
       for (var i = 0; i < window.frames.length; i++) {
         const frame = window.frames[i];
@@ -336,7 +334,7 @@ class KardiaChainWeb3Provider extends EventEmitter {
 
 window.kardiachain = new KardiaChainWeb3Provider({
   address: '{{WALLET_ADDRESS}}',
-  chainId: 0,
+  chainId: 24,
   rpcUrl: '{{KARDIA_RPC_URL}}',
   isDebug: false
 });
