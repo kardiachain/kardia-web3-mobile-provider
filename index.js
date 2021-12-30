@@ -30,9 +30,9 @@ class KardiaChainWeb3Provider extends EventEmitter {
     this.ready = !!address;
     for (var i = 0; i < window.frames.length; i++) {
       const frame = window.frames[i];
-      if (frame.ethereum && frame.ethereum.isKaiWallet) {
-        frame.ethereum.address = lowerAddress;
-        frame.ethereum.ready = !!address;
+      if (frame.kardiachain && frame.kardiachain.isKaiWallet) {
+        frame.kardiachain.address = lowerAddress;
+        frame.kardiachain.ready = !!address;
       }
     }
   }
@@ -49,7 +49,7 @@ class KardiaChainWeb3Provider extends EventEmitter {
     // this points to window in methods like web3.eth.getAccounts()
     var that = this;
     if (!(this instanceof KardiaChainWeb3Provider)) {
-      that = window.ethereum;
+      that = window.kardiachain;
     }
     return that._request(payload, false);
   }
@@ -133,7 +133,6 @@ class KardiaChainWeb3Provider extends EventEmitter {
         }
       });
       this.wrapResults.set(payload.id, wrapResult);
-
       switch (payload.method) {
         case "eth_accounts":
           return this.sendResponse(payload.id, this.eth_accounts());
@@ -275,11 +274,27 @@ class KardiaChainWeb3Provider extends EventEmitter {
         name: handler,
         object: data,
       };
-      window.ReactNativeWebView.postMessage(JSON.stringify(object));
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(object));
+      }
     } else {
       // don't forget to verify in the app
       this.sendError(id, new ProviderRpcError(4100, "provider is not ready"));
     }
+  }
+
+  remoteEmit(eventName, message) {
+    let dataToEmit
+    if (typeof message === 'string') {
+      try {
+        dataToEmit = JSON.parse(message)
+      } catch (error) {
+        dataToEmit = message; 
+      }
+    } else {
+      dataToEmit = message;
+    }
+    this.emit(eventName, dataToEmit)
   }
 
   /**
@@ -310,8 +325,8 @@ class KardiaChainWeb3Provider extends EventEmitter {
       for (var i = 0; i < window.frames.length; i++) {
         const frame = window.frames[i];
         try {
-          if (frame.ethereum.callbacks.has(id)) {
-            frame.ethereum.sendResponse(id, result);
+          if (frame.kardiachain.callbacks.has(id)) {
+            frame.kardiachain.sendResponse(id, result);
           }
         } catch (error) {
           console.log(`send response to frame error: ${error}`);
