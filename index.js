@@ -345,7 +345,7 @@ class KardiaChainWeb3Provider extends EventEmitter {
       this.callbacks.delete(id);
     }
   }
-}
+};
 
 window.kardiachain = new KardiaChainWeb3Provider({
   address: '{{WALLET_ADDRESS}}',
@@ -354,17 +354,24 @@ window.kardiachain = new KardiaChainWeb3Provider({
   isDebug: false
 });
 
+window.ethereum = new KardiaChainWeb3Provider({
+  address: '{{WALLET_ADDRESS}}',
+  chainId: 24,
+  rpcUrl: '{{KARDIA_RPC_URL}}',
+  isDebug: false
+});
+
 // DEBUG
-if (window.ReactNativeWebView) {
-  console = new Object();
-  console.log = function(log, type = 'log') {
-    window.ReactNativeWebView.postMessage(JSON.stringify({
-      type: type,
-      data: log
-    }));
-  };
-  console.debug = (...args) => console.log(args, 'debug');
-  console.info = (...args) => console.log(args, 'info');
-  console.warn = (...args) => console.log(args, 'warn');
-  console.error = (...args) => console.log(args, 'error');
-}
+// if (window.ReactNativeWebView) {
+//   console = new Object();
+//   console.log = function(log, type = 'log') {
+//     window.ReactNativeWebView.postMessage(JSON.stringify({
+//       type: type,
+//       data: log
+//     }));
+//   };
+//   console.debug = (...args) => console.log(args, 'debug');
+//   console.info = (...args) => console.log(args, 'info');
+//   console.warn = (...args) => console.log(args, 'warn');
+//   console.error = (...args) => console.log(args, 'error');
+// }
